@@ -1,0 +1,141 @@
+神经网络
+========
+
+神经网络概述
+------------
+* **神经网络图示**
+
+	.. image:: ./images/net.png
+	   :width: 400
+
+  神经网络有输入层（第0层），中间层（隐藏层），输出层构成。
+
+  | 
+* **神经网络与感知机的差异**
+
+  感知机的激活函数为阶跃函数，神经网络为其他非线性激活函数。
+
+激活函数
+--------
+* **阶跃函数**
+
+	.. image:: ./images/step.png
+	   :width: 400
+
+ .. code-block:: python
+
+  	def step_function(x):
+		y = x > 0
+		return y.astype(int)
+
+* **恒等函数**
+
+ .. code-block:: python
+
+	def identity_function(x):
+		return x
+
+* **sigmoid函数**
+
+	.. image:: ./images/sigmoid_math.png
+	.. image:: ./images/sigmoid.png
+ 	   :width: 400
+
+
+ .. code-block:: python
+
+	def sigmoid(x):
+		return 1 / (1 + np.exp(-x))
+
+*sigmoid和阶跃函数的比较*
+
+  相同点
+	| 都属于非线性激活函数
+	| 当输入信号为重要信号时，输出较大值
+	| 当输入信号为小信号时，输出较小的值
+	| 输出都在0～1之间
+
+  不同点
+	| sigmoid具有平滑连续性               
+
+ 
+* **softmax函数**
+
+       	.. image:: ./images/softmax_math.png
+	.. image:: ./images/softmax.png
+
+  .. code-block:: python
+
+	def softmax(a):
+		c = np.max(a)
+		exp_a = np.exp(a - c) # 溢出对策
+		sum_exp_a = np.sum(exp_a)
+		y = exp_a / sum_exp_a
+
+		return y
+
+ softmax函数的输出是0.0~1.0之间，并且输出值的总和为1。
+
+* **ReLU函数**
+
+	.. image:: ./images/relu_math.png
+	.. image:: ./images/relu.png
+           :width: 400
+
+ .. code-block:: python
+
+        def relu(x):
+                return np.maximum(0, x)
+
+输出层设计
+----------
+
+| 神经网络可应用在分类问题和回归问题上。
+| 一般而言，回归问题输出层激活函数使用恒等函数，分类问题使用softmax函数。
+| 对于分类问题，输出层神经元的个数一般设定为类别的数量
+| 
+
+代码实现
+--------
+
+* **三层网络示例**
+
+	.. image:: ./images/3_net.png
+           :width: 600
+
+* **代码示例**
+
+   1. 初始化网络参数
+   #. 前向传播
+
+ .. code-block:: python
+
+	def init_network():
+		network = {}
+		network['W1'] = np.array([[0.1, 0.3, 0.5], [0.2, 0.4, 0.6]])
+		network['b1'] = np.array([0.1, 0.2, 0.3])
+		network['W2'] = np.array([[0.1, 0.4], [0.2, 0.5], [0.3, 0.6]])
+		network['b2'] = np.array([0.1, 0.2])
+		network['W3'] = np.array([0.1, 0.3], [0.2, 0.4])
+		network['b3'] = np.array([0.1, 0.2])
+		
+		return network
+
+	def forward(network, x):
+		W1, W2, W3 = network['W1'], network['W2'], network['W3']
+		b1, b2, b3 = network['b1'], network['b2'], network['b3']
+
+		a1 = np.dot(x, W1) + b1
+		z1 = sigmoid(a1)
+		a2 = np.dot(a1, W2) + b2
+		z2 = sigmoid(a2)
+		a3 = np.dot(a2, W3) + b3
+		y = identity_function(a3)
+
+		return y
+
+	network = init_network()
+	x = np.array([1.0, 0.5])
+	y = forward(network, x)
+	print(y)
+

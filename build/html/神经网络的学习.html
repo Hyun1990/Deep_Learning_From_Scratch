@@ -1,0 +1,378 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>3. 神经网络的学习 &mdash; Deep_Learning_From_Scratch 1.0 文档</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="索引"
+              href="genindex.html"/>
+        <link rel="search" title="搜索" href="search.html"/>
+    <link rel="top" title="Deep_Learning_From_Scratch 1.0 文档" href="index.html"/>
+        <link rel="next" title="4. 误差反向传播法" href="误差反向传播法.html"/>
+        <link rel="prev" title="2. 神经网络" href="神经网络.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Deep_Learning_From_Scratch
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="感知机.html">1. 感知机</a></li>
+<li class="toctree-l1"><a class="reference internal" href="神经网络.html">2. 神经网络</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">3. 神经网络的学习</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id2">3.1. 从数据中学习</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">3.2. 损失函数</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">3.3. 数值微分和梯度</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id5">3.4. 学习算法步骤</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="误差反向传播法.html">4. 误差反向传播法</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Deep_Learning_From_Scratch</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>3. 神经网络的学习</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/神经网络的学习.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="id1">
+<h1>3. 神经网络的学习<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h1>
+<div class="section" id="id2">
+<h2>3.1. 从数据中学习<a class="headerlink" href="#id2" title="永久链接至标题">¶</a></h2>
+<p><strong>神经网络的特征就是可以自动从数据中学习。</strong></p>
+<ul class="simple">
+<li>训练集和测试集</li>
+</ul>
+<blockquote>
+<div><div class="line-block">
+<div class="line">使用训练集来进行学习，寻找最优参数</div>
+<div class="line">使用测试集来评估模型的泛化能力（泛化能力是机器学习的最终目标）。</div>
+</div>
+</div></blockquote>
+</div>
+<div class="section" id="id3">
+<h2>3.2. 损失函数<a class="headerlink" href="#id3" title="永久链接至标题">¶</a></h2>
+<p><strong>损失函数是用来评价神经网络学习性能的指标。</strong></p>
+<ul>
+<li><dl class="first docutils">
+<dt><strong>均方误差</strong></dt>
+<dd><img alt="_images/msn.png" class="first last" src="_images/msn.png" />
+</dd>
+</dl>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">mean_squares_error</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">y</span> <span class="o">-</span> <span class="n">t</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+<li><dl class="first docutils">
+<dt><strong>交叉熵误差</strong></dt>
+<dd><img alt="_images/cross.png" class="first last" src="_images/cross.png" />
+</dd>
+</dl>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">cross_entropy_error</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-7</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">t</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="n">delta</span><span class="p">))</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>mini-batch交叉熵误差</strong></p>
+<blockquote>
+<div><img alt="_images/batch_cross.png" src="_images/batch_cross.png" />
+</div></blockquote>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">cross_entropy_error</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">y</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+
+        <span class="n">batch_size</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">t</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="mf">1e-7</span><span class="p">))</span> <span class="o">/</span> <span class="n">batch_size</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="id4">
+<h2>3.3. 数值微分和梯度<a class="headerlink" href="#id4" title="永久链接至标题">¶</a></h2>
+<ul>
+<li><p class="first"><strong>导数</strong></p>
+<blockquote>
+<div><img alt="_images/diff.png" src="_images/diff.png" />
+</div></blockquote>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">numerical_diff</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="mf">1e-4</span> <span class="c1"># 0.0001</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="n">h</span><span class="p">)</span> <span class="o">-</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">h</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">h</span><span class="p">)</span> <span class="c1"># 中心差分</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>偏导数</strong></p>
+<blockquote>
+<div><img alt="_images/bias_diff.png" src="_images/bias_diff.png" />
+</div></blockquote>
+</li>
+<li><p class="first"><strong>梯度</strong></p>
+<blockquote>
+<div><img alt="_images/gradient.png" src="_images/gradient.png" />
+</div></blockquote>
+<div class="line-block">
+<div class="line">由全部变量的偏导数汇总而成的向量称为梯度。</div>
+<div class="line">梯度表示的是各点处的函数值减小最多的方向。</div>
+<div class="line">函数的极小值，最小值及鞍点的地方，梯度为0。虽然梯度方向不一定指向最小值，但沿着它的方向能最大限度地减小函数的值。</div>
+<div class="line"><br /></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">numerical_gradient</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="mf">1e-4</span> <span class="c1"># 0.0001</span>
+        <span class="n">grad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="c1"># 生成和x形状相同的数组</span>
+
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+                <span class="n">tmp_val</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+                <span class="c1"># f(x+h)的计算</span>
+                <span class="n">x</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp_val</span> <span class="o">+</span> <span class="n">h</span>
+                <span class="n">fxh1</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+                <span class="c1"># f(x-h)的计算</span>
+                <span class="n">x</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp_val</span> <span class="o">-</span><span class="n">h</span>
+                <span class="n">fxh2</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+                <span class="n">grad</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">fxh1</span> <span class="o">-</span> <span class="n">fxh2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">h</span><span class="p">)</span>
+                <span class="n">x</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">tmp_val</span> <span class="c1"># 还原值</span>
+
+        <span class="k">return</span> <span class="n">grad</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>梯度法</strong></p>
+<blockquote>
+<div><a class="reference internal image-reference" href="_images/gradient_method.png"><img alt="_images/gradient_method.png" src="_images/gradient_method.png" style="width: 150px;" /></a>
+</div></blockquote>
+<div class="line-block">
+<div class="line">η称为学习率</div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">gradient_descent</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">init_x</span><span class="p">,</span> <span class="n">lr</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">step_num</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">init_x</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">step_num</span><span class="p">):</span>
+                <span class="n">grad</span> <span class="o">=</span> <span class="n">numerical_gradient</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+                <span class="n">x</span> <span class="o">-=</span> <span class="n">lr</span> <span class="o">*</span> <span class="n">grad</span>
+
+        <span class="k">return</span> <span class="n">x</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="id5">
+<h2>3.4. 学习算法步骤<a class="headerlink" href="#id5" title="永久链接至标题">¶</a></h2>
+<blockquote>
+<div><ol class="arabic simple">
+<li><strong>mini-batch</strong>  从训练数据中随机选取一部分数据，目标是减小mini-batch的值。</li>
+<li><strong>计算梯度</strong> 为减小nimi-batch损失函数的值，需要求出各个权重参数的梯度。梯度表示损失函数的值减小最多的方向。</li>
+<li><strong>更新参数</strong> 将权重参数沿梯度方向进行微小更新。</li>
+<li><strong>重复</strong> 重复步骤1，2，3。</li>
+</ol>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="误差反向传播法.html" class="btn btn-neutral float-right" title="4. 误差反向传播法" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="神经网络.html" class="btn btn-neutral" title="2. 神经网络" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, hyun.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

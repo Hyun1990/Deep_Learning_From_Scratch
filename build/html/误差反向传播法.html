@@ -1,0 +1,565 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>4. 误差反向传播法 &mdash; Deep_Learning_From_Scratch 1.0 文档</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="索引"
+              href="genindex.html"/>
+        <link rel="search" title="搜索" href="search.html"/>
+    <link rel="top" title="Deep_Learning_From_Scratch 1.0 文档" href="index.html"/>
+        <link rel="next" title="5. 与学习相关的技巧" href="与学习相关的技巧.html"/>
+        <link rel="prev" title="3. 神经网络的学习" href="神经网络的学习.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Deep_Learning_From_Scratch
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="感知机.html">1. 感知机</a></li>
+<li class="toctree-l1"><a class="reference internal" href="神经网络.html">2. 神经网络</a></li>
+<li class="toctree-l1"><a class="reference internal" href="神经网络的学习.html">3. 神经网络的学习</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">4. 误差反向传播法</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id2">4.1. 计算图</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">4.2. 链式法则</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">4.3. 反向传播</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id5">4.4. 层的实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id6">4.5. 误差反向传播法的实现</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="与学习相关的技巧.html">5. 与学习相关的技巧</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Deep_Learning_From_Scratch</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>4. 误差反向传播法</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/误差反向传播法.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="id1">
+<h1>4. 误差反向传播法<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h1>
+<div class="section" id="id2">
+<h2>4.1. 计算图<a class="headerlink" href="#id2" title="永久链接至标题">¶</a></h2>
+<ul>
+<li><p class="first"><strong>用计算图求解</strong></p>
+<blockquote>
+<div><img alt="_images/cal.png" src="_images/cal.png" />
+</div></blockquote>
+</li>
+<li><p class="first"><strong>为何要使用计算图</strong></p>
+<ol class="arabic simple">
+<li>局部计算，简化问题</li>
+<li>可以将中间结果保存起来</li>
+<li>可以通过反向传播高效计算导数</li>
+</ol>
+</li>
+</ul>
+</div>
+<div class="section" id="id3">
+<h2>4.2. 链式法则<a class="headerlink" href="#id3" title="永久链接至标题">¶</a></h2>
+<p>如果某个函数由符合函数表示，则该符合函数的导数可以用构成复合函数的各个函数的导数的乘积表示。</p>
+<blockquote>
+<div><img alt="_images/de.png" src="_images/de.png" />
+</div></blockquote>
+<ul>
+<li><dl class="first docutils">
+<dt><strong>链式法则和计算图</strong></dt>
+<dd><a class="first last reference internal image-reference" href="_images/4_3.png"><img alt="_images/4_3.png" src="_images/4_3.png" style="width: 500px;" /></a>
+</dd>
+</dl>
+</li>
+</ul>
+</div>
+<div class="section" id="id4">
+<h2>4.3. 反向传播<a class="headerlink" href="#id4" title="永久链接至标题">¶</a></h2>
+<ul>
+<li><p class="first"><strong>加法节点的反向传播</strong></p>
+<blockquote>
+<div><a class="reference internal image-reference" href="_images/4_4.png"><img alt="_images/4_4.png" src="_images/4_4.png" style="width: 500px;" /></a>
+</div></blockquote>
+<div class="line-block">
+<div class="line">加法节点的反向传播将上游的值原封不动地输出到下游</div>
+<div class="line"><br /></div>
+</div>
+</li>
+<li><p class="first"><strong>乘法节点的反向传播</strong></p>
+<blockquote>
+<div><a class="reference internal image-reference" href="_images/4_5.png"><img alt="_images/4_5.png" src="_images/4_5.png" style="width: 500px;" /></a>
+</div></blockquote>
+<div class="line-block">
+<div class="line">乘法的反向传播会乘以输入信号的翻转值</div>
+<div class="line"><br /></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="id5">
+<h2>4.4. 层的实现<a class="headerlink" href="#id5" title="永久链接至标题">¶</a></h2>
+<p>层的实现中有两个共通的方法forward()和backword()。</p>
+<p><strong>简单层的实现</strong></p>
+<ul>
+<li><p class="first">乘法层</p>
+<blockquote>
+<div><div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">MulLayer</span><span class="p">:</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="c1"># 初始化实例变量x和y，用于保存正向传播时的输入值</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span>
+
+                <span class="k">return</span> <span class="n">out</span>
+
+        <span class="k">def</span> <span class="nf">backword</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dout</span><span class="p">):</span>
+                <span class="n">dx</span> <span class="o">=</span> <span class="n">dout</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="c1"># 翻转x和y</span>
+                <span class="n">dy</span> <span class="o">=</span> <span class="n">dout</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span>
+
+                <span class="k">return</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">加法层</p>
+<blockquote>
+<div><div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">AddLayer</span><span class="p">:</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="k">pass</span>
+
+        <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+                <span class="k">return</span> <span class="n">out</span>
+
+        <span class="k">def</span> <span class="nf">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dout</span><span class="p">):</span>
+                <span class="n">dx</span> <span class="o">=</span> <span class="n">dout</span> <span class="o">*</span> <span class="mi">1</span>
+                <span class="n">dy</span> <span class="o">=</span> <span class="n">dout</span> <span class="o">*</span> <span class="mi">1</span>
+                <span class="k">return</span> <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+</ul>
+<p><strong>激活函数层的实现</strong></p>
+<p>在神经网络层的实现中，一般假定forward()和backward()的参数是NumPy数组。</p>
+<ul>
+<li><p class="first">ReLU层</p>
+<blockquote>
+<div><div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Relu</span><span class="p">:</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">&lt;=</span><span class="mi">0</span> <span class="p">)</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                <span class="n">out</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+                <span class="k">return</span> <span class="n">out</span>
+
+        <span class="k">def</span> <span class="nf">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dout</span><span class="p">):</span>
+                <span class="n">dout</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">dx</span> <span class="o">=</span> <span class="n">dout</span>
+
+                <span class="k">return</span> <span class="n">dx</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first">Sigmoid层</p>
+<blockquote>
+<div><img alt="_images/4_6.png" src="_images/4_6.png" />
+<img alt="_images/4_7.png" src="_images/4_7.png" />
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Sigmoid</span><span class="p">:</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">out</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">out</span> <span class="o">=</span> <span class="n">out</span>
+
+                <span class="k">return</span> <span class="n">out</span>
+
+        <span class="k">def</span> <span class="nf">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dout</span><span class="p">):</span>
+                <span class="n">dx</span> <span class="o">=</span> <span class="n">dout</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">out</span>
+
+                <span class="k">return</span> <span class="n">dx</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first"><strong>Affine层的实现</strong></p>
+<p>神经网络的正向传播中进行的矩阵乘积运算在几何学领域被成为“仿射变换”</p>
+<blockquote>
+<div><img alt="_images/affine.png" src="_images/affine.png" />
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Affine</span><span class="p">:</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">W</span> <span class="o">=</span> <span class="n">W</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="n">b</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dW</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+                <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">W</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span>
+
+                <span class="k">return</span> <span class="n">out</span>
+
+        <span class="k">def</span> <span class="nf">backword</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dout</span><span class="p">):</span>
+                <span class="n">dx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">dout</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">W</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dW</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">dout</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dout</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="n">dx</span>
+</pre></div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first"><strong>Softmax-with-Loss</strong></p>
+<p>神经网络中进行的处理有推理和学习两个阶段。推理通常不使用softmax层，学习阶段需要softmax层。</p>
+<blockquote>
+<div><img alt="_images/4_9.png" src="_images/4_9.png" />
+<a class="reference internal image-reference" href="_images/4_8.png"><img alt="_images/4_8.png" src="_images/4_8.png" style="width: 500px;" /></a>
+</div></blockquote>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">SoftmaxWithLoss</span><span class="p">:</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="bp">None</span> <span class="c1"># 损失</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="bp">None</span>    <span class="c1"># softmax 输出</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">t</span> <span class="o">=</span> <span class="bp">None</span>    <span class="c1"># 监督数据（one-hot vector）</span>
+
+        <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">t</span> <span class="o">=</span> <span class="n">t</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">softmax</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">cross_entropy_error</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">t</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span>
+
+        <span class="k">def</span> <span class="nf">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dout</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">t</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">dx</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">t</span><span class="p">)</span> <span class="o">/</span> <span class="n">batch_size</span>
+
+                <span class="k">return</span> <span class="n">dx</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+<div class="section" id="id6">
+<h2>4.5. 误差反向传播法的实现<a class="headerlink" href="#id6" title="永久链接至标题">¶</a></h2>
+<ul>
+<li><p class="first"><strong>误差反向传播法的神经网络</strong></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">TwoLayerNet</span><span class="p">:</span>
+        <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">,</span> <span class="n">output_size</span><span class="p">,</span>
+                                <span class="n">weight_init_std</span><span class="o">=</span><span class="mf">0.1</span><span class="p">):</span>
+                <span class="c1"># 初始化权重</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">param</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;W1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">weight_init_std</span> <span class="o">*</span> \
+                                <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">input_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;b1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;W2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">weight_init_std</span> <span class="o">*</span> \
+                                <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">hidden_size</span><span class="p">,</span> <span class="n">output_size</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;b2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">output_size</span><span class="p">)</span>
+
+                <span class="c1"># 生成层</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="s1">&#39;Affine1&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                        <span class="n">Affine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;W1&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;b1&#39;</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="s1">&#39;Relu&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Relu</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="s1">&#39;Affine2&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                        <span class="n">Affine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;W2&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;b2&#39;</span><span class="p">])</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">lastLayer</span> <span class="o">=</span> <span class="n">SoftmaxWithLoss</span><span class="p">()</span>
+
+        <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                        <span class="n">x</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="n">x</span>
+
+        <span class="k">def</span> <span class="nf">loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lastlayer</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+
+        <span class="k">def</span> <span class="nf">accuracy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">t</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                        <span class="n">accuracy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="n">t</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">return</span> <span class="n">accuracy</span>
+
+        <span class="c1"># x:输入数据，t:监督数据</span>
+        <span class="k">def</span> <span class="nf">gradient</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+                <span class="c1"># forward</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span>
+
+                <span class="c1"># backward</span>
+                <span class="n">dout</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">dout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Lastlayer</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">dout</span><span class="p">)</span>
+
+                <span class="n">layers</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+                        <span class="n">dout</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">backward</span><span class="p">(</span><span class="n">dout</span><span class="p">)</span>
+
+                <span class="c1"># 设定</span>
+                <span class="n">grads</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">grads</span><span class="p">[</span><span class="s1">&#39;W1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="s1">&#39;Affine1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dW</span>
+                <span class="n">grads</span><span class="p">[</span><span class="s1">&#39;b1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="s1">&#39;Affine1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">db</span>
+                <span class="n">grads</span><span class="p">[</span><span class="s1">&#39;W2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="s1">&#39;Affine2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">dW</span>
+                <span class="n">grads</span><span class="p">[</span><span class="s1">&#39;b2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="s1">&#39;Affine2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">db</span>
+
+                <span class="k">return</span> <span class="n">grads</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>误差反向传播法的学习</strong></p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="c1"># 读入数据</span>
+<span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">t_train</span><span class="p">),</span> <span class="p">(</span><span class="n">x_test</span><span class="p">,</span> <span class="n">t_test</span><span class="p">)</span> <span class="o">=</span> \
+        <span class="n">load_mnist</span><span class="p">(</span><span class="n">normalize</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">one_hot_label</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="n">network</span> <span class="o">=</span> <span class="n">TwoLayerNet</span><span class="p">(</span><span class="n">input_size</span><span class="o">=</span><span class="mi">784</span><span class="p">,</span> <span class="n">hidden_size</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">output_size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="n">iters_num</span> <span class="o">=</span> <span class="mi">10000</span>
+<span class="n">train_size</span> <span class="o">=</span> <span class="n">x_train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">batch_size</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">leraning_rate</span> <span class="o">=</span> <span class="mf">0.01</span>
+<span class="n">train_loss_list</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">train_acc_list</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">test_acc_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="n">iter_per_epoch</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">train_size</span> <span class="o">/</span> <span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">iters_num</span><span class="p">):</span>
+        <span class="n">batch_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">train_size</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span>
+        <span class="n">x_batch</span> <span class="o">=</span> <span class="n">x_train</span><span class="p">(</span><span class="n">batch_mask</span><span class="p">)</span>
+        <span class="n">t_batch</span> <span class="o">=</span> <span class="n">t_train</span><span class="p">(</span><span class="n">batch_mask</span><span class="p">)</span>
+
+        <span class="c1"># 通过误差反向传播法求梯度</span>
+        <span class="n">grad</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">gradient</span><span class="p">(</span><span class="n">x_batch</span><span class="p">,</span> <span class="n">t_batch</span><span class="p">)</span>
+
+        <span class="c1"># 更新</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;W1&#39;</span><span class="p">,</span> <span class="s1">&#39;b1&#39;</span><span class="p">,</span> <span class="s1">&#39;W2&#39;</span><span class="p">,</span> <span class="s1">&#39;b2&#39;</span><span class="p">):</span>
+                <span class="n">network</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">-=</span> <span class="n">learning_rate</span> <span class="o">*</span> <span class="n">grad</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">loss</span><span class="p">(</span><span class="n">x_batch</span><span class="p">,</span> <span class="n">t_batch</span><span class="p">)</span>
+        <span class="n">train_loss_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="n">iter_per_epoch</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">train_acc</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">accuracy</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">t_trian</span><span class="p">)</span>
+                <span class="n">test_acc</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">accuracy</span><span class="p">(</span><span class="n">x_test</span><span class="p">,</span> <span class="n">t_test</span><span class="p">)</span>
+                <span class="n">train_acc_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">train_acc</span><span class="p">)</span>
+                <span class="n">test_acc_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">test_acc</span><span class="p">)</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">train_acc</span><span class="p">,</span> <span class="n">test_acc</span><span class="p">)</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="与学习相关的技巧.html" class="btn btn-neutral float-right" title="5. 与学习相关的技巧" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="神经网络的学习.html" class="btn btn-neutral" title="3. 神经网络的学习" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, hyun.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,350 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>1. 感知机 &mdash; Deep_Learning_From_Scratch 1.0 文档</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="索引"
+              href="genindex.html"/>
+        <link rel="search" title="搜索" href="search.html"/>
+    <link rel="top" title="Deep_Learning_From_Scratch 1.0 文档" href="index.html"/>
+        <link rel="prev" title="Deep_Learning_From_Scratch" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Deep_Learning_From_Scratch
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">1. 感知机</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id2">1.1. 什么是感知机</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">1.2. 感知机的实现</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id4">1.3. 多层感知机</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Deep_Learning_From_Scratch</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>1. 感知机</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/感知机.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="id1">
+<h1>1. 感知机<a class="headerlink" href="#id1" title="永久链接至标题">¶</a></h1>
+<div class="section" id="id2">
+<h2>1.1. 什么是感知机<a class="headerlink" href="#id2" title="永久链接至标题">¶</a></h2>
+<ul class="simple">
+<li><strong>感知机图示</strong></li>
+</ul>
+<img alt="_images/perceptron.png" src="_images/perceptron.png" />
+<table border="1" class="docutils">
+<colgroup>
+<col width="23%" />
+<col width="77%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td>输入</td>
+<td>拥有各自权重的多个信号</td>
+</tr>
+<tr class="row-even"><td>输出</td>
+<td>一个信号（0 或 1）</td>
+</tr>
+<tr class="row-odd"><td>判断条件</td>
+<td>是否超过某个阈值</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><p class="first"><strong>感知机的数学表达式</strong></p>
+<blockquote>
+<div><img alt="_images/math1.png" src="_images/math1.png" />
+</div></blockquote>
+</li>
+</ul>
+</div>
+<div class="section" id="id3">
+<h2>1.2. 感知机的实现<a class="headerlink" href="#id3" title="永久链接至标题">¶</a></h2>
+<p>使用感知机可以表示与门，或门等逻辑电路</p>
+<ul class="simple">
+<li><strong>与门</strong></li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">AND</span><span class="p">(</span><span class="n">X1</span><span class="p">,</span> <span class="n">X2</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">])</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.7</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">w</span><span class="o">*</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span>
+        <span class="k">if</span> <span class="n">tmp</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><strong>与非门</strong></li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">NAND</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">])</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">])</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="mf">0.7</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">w</span><span class="o">*</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span>
+        <span class="k">if</span> <span class="n">tmp</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><strong>或门</strong></li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">OR</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">])</span>
+        <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">])</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.2</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">w</span><span class="o">*</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">b</span>
+        <span class="k">if</span> <span class="n">tmp</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="mi">1</span>
+</pre></div>
+</div>
+<dl class="docutils">
+<dt><em>重点</em></dt>
+<dd><div class="first last line-block">
+<div class="line">w1,w2 权重是控制输入信号的重要性</div>
+<div class="line">b 偏置是调整神经元被激活的容易程度</div>
+</div>
+</dd>
+</dl>
+</div>
+<div class="section" id="id4">
+<h2>1.3. 多层感知机<a class="headerlink" href="#id4" title="永久链接至标题">¶</a></h2>
+<ul>
+<li><p class="first"><strong>感知机的局限性</strong></p>
+<blockquote>
+<div><p>单层感知机只能表示线性空间（由直线分割的空间）。</p>
+</div></blockquote>
+</li>
+<li><p class="first"><strong>多层感知机</strong></p>
+<blockquote>
+<div><img alt="_images/mutiper.png" src="_images/mutiper.png" />
+<div class="line-block">
+<div class="line">研究表明激活函数使用了非线性的sigmoid函数的2层感知机可以表示任意函数。</div>
+<div class="line">多层感知机理论上可以表示计算机。</div>
+</div>
+</div></blockquote>
+</li>
+<li><p class="first"><strong>异或门</strong></p>
+</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">XOR</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">):</span>
+        <span class="n">s1</span> <span class="o">=</span> <span class="n">NAND</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
+        <span class="n">s2</span> <span class="o">=</span> <span class="n">OR</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">AND</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">y</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Deep_Learning_From_Scratch" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, hyun.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
